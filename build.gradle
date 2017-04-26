@@ -1,0 +1,27 @@
+plugins {
+	id 'org.springframework.boot' version '1.5.3.RELEASE'
+	id 'java'
+	id 'idea'
+}
+
+jar {
+	baseName = 'restapi-demo'
+	version = '1.0.0'
+}
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	compile("org.springframework.boot:spring-boot-starter-web")
+
+/*
+	// tag::jetty[]
+	compile("org.springframework.boot:spring-boot-starter-web") {
+		exclude module: "spring-boot-starter-tomcat"
+	}
+	compile("org.springframework.boot:spring-boot-starter-jetty")
+	// end::jetty[]
+*/
+}
