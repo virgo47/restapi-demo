@@ -606,7 +606,6 @@ definitions:
       name:
         type: "string"
         description: "Human readable name for a box"
-        required: true
       volume:
         type: "integer"
         format: "int32"
@@ -618,6 +617,7 @@ definitions:
         type: "boolean"
         default: false
         description: "When sealed the box does not allow item manipulation (read-only)."
+    required: ["name"]
     xml:
       name: "Box"
   Category:
