@@ -1,9 +1,15 @@
+# This YAML definition can be previewed and validated (to a degree) at: http://editor.swagger.io
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  description: |
+    This is a demo application ("reference implementation" if you will) for REST API above
+    the complex domain of "Boxes and Items".
+
+    It is a proof of concept of our REST API rules and
+    how they can be documented within a concrete application using [Swagger](http://swagger.io).
   version: "1.0.0"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
+  title: "REST API Boxes and Items Demo"
+  termsOfService: "/index.html#terms"
   contact:
     email: "apiteam@swagger.io"
   license:
@@ -12,18 +18,15 @@ info:
 #host: "petstore.swagger.io"
 #basePath: "/v2"
 tags:
-- name: "pet"
-  description: "Everything about your Pets"
+- name: "box"
+  description: "Management of boxes. Boxes can hold various items."
   externalDocs:
-    description: "Find out more"
-    url: "http://swagger.io"
-- name: "store"
-  description: "Access to Petstore orders"
-- name: "user"
-  description: "Operations about user"
-  externalDocs:
-    description: "Find out more about our store"
-    url: "http://swagger.io"
+    description: "What is a box? And where is this linked displayed anyway?"
+    url: "/index.html#box"
+- name: "item"
+  description: "Access to Items stored in the boxes."
+- name: "label"
+  description: "Access to Labels and further to items marked by them."
 schemes:
 - "http"
 paths:
@@ -33,18 +36,21 @@ paths:
       responses:
         200:
           description: "Virtually always"
-  /pet:
+      deprecated: true
+  /boxes:
     post:
       tags:
-      - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
+      - "box"
+      summary: "Add a new available box"
+      description: |
+        Adds a new box so we can put items in it. Box does not have to be named although it is
+        recommended.
+      operationId: "addBox"
       consumes:
       - "application/json"
-      - "application/xml"
+#      - "application/xml"
       produces:
-      - "application/xml"
+#      - "application/xml"
       - "application/json"
       parameters:
       - in: "body"
@@ -582,33 +588,38 @@ securityDefinitions:
     name: "api_key"
     in: "header"
 definitions:
-  Order:
+  Box:
     type: "object"
     properties:
       id:
         type: "integer"
         format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
+      key:
+        type: "string"
+        # as documented in http://swagger.io/specification/ section Data Types it is
+        # up to us to use formats beyond JSON-Schema
+        format: "identifier-with-hyphens"
+        description: |
+          Technical name for a box. Can be set explicitly or derived from the name. In any case
+          it must be unique - in case of automatic generation from a name the sequence number
+          is appended.
+      name:
+        type: "string"
+        description: "Human readable name for a box"
+        required: true
+      volume:
         type: "integer"
         format: "int32"
-      shipDate:
+        description: "Approximate volume of the box, not used for validation."
+      created:
         type: "string"
         format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
+      sealed:
         type: "boolean"
         default: false
+        description: "When sealed the box does not allow item manipulation (read-only)."
     xml:
-      name: "Order"
+      name: "Box"
   Category:
     type: "object"
     properties:
