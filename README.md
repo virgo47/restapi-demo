@@ -15,3 +15,4 @@ pre-populated after ever restart (data changes are possible but eventually ephem
 TODO:
 * Separate model for API instead of reuse of entities.
 * Demonstrate field inclusion/exclusion.
+* Security for both application and Swagger definition.

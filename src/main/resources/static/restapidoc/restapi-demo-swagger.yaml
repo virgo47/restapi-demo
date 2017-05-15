@@ -1,6 +1,8 @@
 # This YAML definition can be previewed and validated (to a degree) at: http://editor.swagger.io
+# See reference at: http://swagger.io/specification/
 swagger: "2.0"
 info:
+  title: "REST API Boxes and Items Demo"
   description: |
     This is a demo application ("reference implementation" if you will) for REST API above
     the complex domain of "Boxes and Items".
@@ -8,15 +10,25 @@ info:
     It is a proof of concept of our REST API rules and
     how they can be documented within a concrete application using [Swagger](http://swagger.io).
   version: "1.0.0"
-  title: "REST API Boxes and Items Demo"
   termsOfService: "/index.html#terms"
   contact:
     email: "apiteam@swagger.io"
   license:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+# If hosted on the same host, this can be omitted.
 #host: "petstore.swagger.io"
+# If basePath is / it can be omitted (which is the case of the demo application).
 #basePath: "/v2"
+# If not included the one used to access the Swagger definition itself is used.
+#schemes:
+#- "http"
+consumes:
+- "application/json"
+#- "application/xml"
+produces:
+#- "application/xml"
+- "application/json"
 tags:
 - name: "box"
   description: "Management of boxes. Boxes can hold various items."
@@ -27,8 +39,16 @@ tags:
   description: "Access to Items stored in the boxes."
 - name: "label"
   description: "Access to Labels and further to items marked by them."
-schemes:
-- "http"
+# Reusable response definitions
+responses:
+  ok:
+    description: Operation finished successfully.
+  created:
+    description: Resource created successfully.
+  badRequest:
+    description: Bad request - invalid structure or other logical error. Can be fixed by the client.
+  notFound:
+    description: Resource not found.
 paths:
   /all:
     get:
@@ -42,13 +62,11 @@ paths:
       tags:
       - "box"
       summary: "List existing boxes"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
       responses:
-        405:
-          description: "Invalid input"
+        200:
+          $ref: "#/responses/ok"
+        400:
+          $ref: "#/responses/badRequest"
     post:
       tags:
       - "box"
@@ -57,12 +75,6 @@ paths:
         Adds a new box so we can put items in it. Box does not have to be named although it is
         recommended.
       operationId: "addBox"
-      consumes:
-      - "application/json"
-#      - "application/xml"
-      produces:
-#      - "application/xml"
-      - "application/json"
       parameters:
       - in: "body"
         name: "body"
