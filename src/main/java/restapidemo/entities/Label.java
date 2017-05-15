@@ -1,4 +1,4 @@
-package restapidemo.domain;
+package restapidemo.entities;
 
 /**
  * Label can be attached to an item. The same label can be attached to many items across

@@ -38,6 +38,17 @@ paths:
           description: "Virtually always"
       deprecated: true
   /boxes:
+    get:
+      tags:
+      - "box"
+      summary: "List existing boxes"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
     post:
       tags:
       - "box"
@@ -606,17 +617,26 @@ definitions:
       name:
         type: "string"
         description: "Human readable name for a box"
+      description:
+        type: "string"
+        description: "Longer arbitrary description of a box"
       volume:
         type: "integer"
         format: "int32"
         description: "Approximate volume of the box, not used for validation."
+# TODO research whether created and/or updated should be represented by headers, if practical
       created:
+        type: "string"
+        format: "date-time"
+      updated:
         type: "string"
         format: "date-time"
       sealed:
         type: "boolean"
         default: false
-        description: "When sealed the box does not allow item manipulation (read-only)."
+        description: |
+          When sealed the box does not allow item manipulation (it is read-only).
+          The value is optional but always returned when read (defaults to `false`).
     required: ["name"]
     xml:
       name: "Box"
