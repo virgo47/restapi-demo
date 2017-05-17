@@ -45,18 +45,15 @@ responses:
     description: Operation finished successfully.
   created:
     description: Resource created successfully.
+    headers:
+      Location:
+        description: URI of the created resource
+        type: string
   badRequest:
     description: Bad request - invalid structure or other logical error. Can be fixed by the client.
   notFound:
     description: Resource not found.
 paths:
-  /all:
-    get:
-      summary: "Experimental GET"
-      responses:
-        200:
-          description: "Virtually always"
-      deprecated: true
   /boxes:
     get:
       tags:
@@ -78,17 +75,19 @@ paths:
       parameters:
       - in: "body"
         name: "body"
-        description: "Pet object that needs to be added to the store"
+        description: "New box object"
         required: true
         schema:
-          $ref: "#/definitions/Pet"
+          $ref: "#/definitions/Box"
       responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+        201:
+          $ref: "#/responses/created"
+        400:
+          $ref: "#/responses/badRequest"
+#      security:
+#      - petstore_auth:
+#        - "write:pets"
+#        - "read:pets"
     put:
       tags:
       - "pet"
@@ -610,58 +609,118 @@ securityDefinitions:
     type: "apiKey"
     name: "api_key"
     in: "header"
-definitions:
-  Box:
-    type: "object"
+# For "abstract" definitions we don't want to display, but we want to reuse them.
+# Reuse has some problems though - property descriptions must be more generic, so it's
+# "Technical name. ..." instead of "Technical name of the box. ..."
+x-definitions:
+  Common:
+    type: object
+    required:
+    - "name"
     properties:
       id:
-        type: "integer"
+        type: integer
         format: "int64"
-      key:
-        type: "string"
-        # as documented in http://swagger.io/specification/ section Data Types it is
-        # up to us to use formats beyond JSON-Schema
-        format: "identifier-with-hyphens"
-        description: |
-          Technical name for a box. Can be set explicitly or derived from the name. In any case
-          it must be unique - in case of automatic generation from a name the sequence number
-          is appended.
-      name:
-        type: "string"
-        description: "Human readable name for a box"
-      description:
-        type: "string"
-        description: "Longer arbitrary description of a box"
-      volume:
-        type: "integer"
-        format: "int32"
-        description: "Approximate volume of the box, not used for validation."
-# TODO research whether created and/or updated should be represented by headers, if practical
+      # TODO research whether created and/or updated should be represented by headers, if practical
       created:
         type: "string"
         format: "date-time"
       updated:
         type: "string"
         format: "date-time"
-      sealed:
-        type: "boolean"
-        default: false
+      key:
+        type: "string"
+        # as documented in http://swagger.io/specification/ section Data Types it is
+        # up to us to use formats beyond JSON-Schema
+        format: "identifier-with-hyphens"
         description: |
-          When sealed the box does not allow item manipulation (it is read-only).
-          The value is optional but always returned when read (defaults to `false`).
-    required: ["name"]
-    xml:
-      name: "Box"
-  Category:
+          Technical name. Can be set explicitly or derived from the name. In any case
+          it must be unique - in case of automatic generation from a name the sequence number
+          is appended.
+      name:
+        type: "string"
+        description: "Human readable name"
+      description:
+        type: "string"
+        description: "Longer arbitrary description"
+# Alternative for per-property references
+x-properties:
+  id:
+    type: integer
+    format: "int64"
+  created:
+    type: "string"
+    format: "date-time"
+  updated:
+    type: "string"
+    format: "date-time"
+  key:
+    type: "string"
+    format: "identifier-with-hyphens"
+    description: |
+      Technical name. Can be set explicitly or derived from the name. In any case
+      it must be unique - in case of automatic generation from a name the sequence number
+      is appended.
+  name:
+    type: "string"
+    description: "Human readable name"
+  description:
+    type: "string"
+    description: "Longer arbitrary description"
+definitions:
+  # Box demonstrates how to use common properties from multiple types.
+  # Note the title: "Box", without it it would be displayed as "Common".
+  # Multiple $refs can be used (multiple definitions merged).
+  Box:
+    type: "object"
+    allOf:
+    - $ref: "#/x-definitions/Common"
+    - title: "Box"
+      properties:
+        volume:
+          type: "integer"
+          format: "int32"
+          description: "Approximate volume of the box, not used for validation."
+        sealed:
+          type: "boolean"
+          default: false
+          description: |
+            When sealed the box does not allow item manipulation (it is read-only).
+            The value is optional but always returned when read (defaults to `false`).
+      xml:
+        name: "Box"
+  # Item demonstrates how to reuse properties via references, but we still have to enumerate them.
+  Item:
+    type: "object"
+    allOf:
+      - $ref: "#/x-definitions/Common"
+      - title: "Item"
+        properties:
+          box:
+            type: "string"
+            format: "uri"
+            description: "URI of the box containing the item (if any)."
+        xml:
+          name: "Item"
+  # Label shows the same, we try to "override" some description - but that does not work.
+  Label:
     type: "object"
     properties:
       id:
-        type: "integer"
-        format: "int64"
+        $ref: "#/x-properties/id"
+      created:
+        $ref: "#/x-properties/created"
+      updated:
+        $ref: "#/x-properties/updated"
+      key:
+        $ref: "#/x-properties/key"
       name:
-        type: "string"
+        $ref: "#/x-properties/name"
+        description: "Human readable name of the label"
+      description:
+        $ref: "#/x-properties/description"
     xml:
-      name: "Category"
+      name: "Label"
   User:
     type: "object"
     properties:
@@ -686,16 +745,6 @@ definitions:
         description: "User Status"
     xml:
       name: "User"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
   Pet:
     type: "object"
     required:
