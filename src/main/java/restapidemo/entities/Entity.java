@@ -8,6 +8,11 @@ public abstract class Entity {
 	private Instant created;
 	private Instant updated;
 
+	// rather business values, but all three entities share these
+	public String key;
+	public String name;
+	public String description;
+
 	public Long getId() {
 		return id;
 	}
