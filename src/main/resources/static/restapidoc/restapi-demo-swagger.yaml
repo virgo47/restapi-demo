@@ -51,6 +51,8 @@ responses:
         type: string
   badRequest:
     description: Bad request - invalid structure or other logical error. Can be fixed by the client.
+    schema:
+      $ref: "#/definitions/Error"
   notFound:
     description: Resource not found.
 paths:
@@ -782,16 +784,17 @@ definitions:
         - "sold"
     xml:
       name: "Pet"
-  ApiResponse:
-    type: "object"
+  Error:
+    type: object
     properties:
       code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
+        type: integer
+        format: int32
+      requestId:
+        type: string
+        format: uuid
       message:
-        type: "string"
+        type: string
 externalDocs:
   description: "Find out more about Swagger"
   url: "http://swagger.io"

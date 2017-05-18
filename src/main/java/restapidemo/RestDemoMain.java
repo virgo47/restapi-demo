@@ -1,11 +1,14 @@
 package restapidemo;
 
+import javax.servlet.Filter;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
@@ -27,5 +30,14 @@ public class RestDemoMain {
 		objectMapper.registerModule(new DemoConverterModule());
 		jsonConverter.setObjectMapper(objectMapper);
 		return jsonConverter;
+	}
+
+	@Bean
+	public FilterRegistrationBean filterRegistrationBean() {
+		FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+		Filter threadRenameFilter = new ThreadRenameFilter();
+		registrationBean.setFilter(threadRenameFilter);
+		registrationBean.setOrder(1);
+		return registrationBean;
 	}
 }
