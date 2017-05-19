@@ -49,8 +49,11 @@ responses:
       Location:
         description: URI of the created resource
         type: string
+  # Both noContent and empty are for HTTP 204 No Content, just for different purposes.
   noContent:
     description: Operation finished successfully, no body is returned.
+  empty:
+    description: No data found.
   badRequest:
     description: Bad request - invalid structure or other logical error. Can be fixed by the client.
     schema:
@@ -59,15 +62,22 @@ responses:
     description: |
       Resource not found. Wrong resource path was used. In case of paths with ID invalid ID might
       have been provided.
+x-pagination-headers:
+
 paths:
   /boxes:
     get:
       tags:
       - box
       summary: "List existing boxes"
+      # TODO add filtering/paging demo
       responses:
         200:
-          $ref: "#/responses/ok"
+          description: "Returns array of all boxes."
+          schema:
+            $ref: "#/definitions/Boxes"
+        204:
+          $ref: "#/responses/noContent"
         400:
           $ref: "#/responses/badRequest"
     post:
@@ -112,13 +122,13 @@ paths:
       # Summary does not support markup, but description does
       summary: Create or update the box with specified ID.
       description: |
-        Create or update the box with specified ID. This may produce following situations:
-        * Two
+        Updates the box with specified ID. Following validations
+        * For existing ID it updates the box.
         * How to do markup
       responses:
         200:
           description: "Box was successfully created or updated and its current content returned."
-          schema: "#/definitions/Box"
+          schema: "#/definitions/Boxes"
         400:
           $ref: "#/responses/badRequest"
   /pet/findByStatus:
@@ -498,7 +508,7 @@ paths:
         in: "query"
         description: "The password for login in clear text"
         required: true
-        type: "string"
+        type: string
       responses:
         200:
           description: "successful operation"
@@ -622,27 +632,18 @@ x-definitions:
   Common:
     type: object
     required:
-    - "name"
+    - name
     properties:
       id:
         type: integer
-        format: "int64"
+        format: int64
       # TODO research whether created and/or updated should be represented by headers, if practical
       created:
-        type: "string"
-        format: "date-time"
+        type: string
+        format: date-time
       updated:
-        type: "string"
-        format: "date-time"
-      key:
-        type: "string"
-        # as documented in http://swagger.io/specification/ section Data Types it is
-        # up to us to use formats beyond JSON-Schema
-        format: "identifier-with-hyphens"
-        description: |
-          Technical name. Can be set explicitly or derived from the name. In any case
-          it must be unique - in case of automatic generation from a name the sequence number
-          is appended.
+        type: string
+        format: date-time
       name:
         type: "string"
         description: "Human readable name"
@@ -653,58 +654,60 @@ x-definitions:
 x-properties:
   id:
     type: integer
-    format: "int64"
+    format: int64
   created:
-    type: "string"
-    format: "date-time"
+    type: string
+    format: date-time
   updated:
-    type: "string"
+    type: string
     format: "date-time"
-  key:
-    type: "string"
-    format: "identifier-with-hyphens"
-    description: |
-      Technical name. Can be set explicitly or derived from the name. In any case
-      it must be unique - in case of automatic generation from a name the sequence number
-      is appended.
   name:
-    type: "string"
+    type: string
     description: "Human readable name"
   description:
-    type: "string"
+    type: string
     description: "Longer arbitrary description"
 definitions:
   # Box demonstrates how to use common properties from multiple types.
   # Note the title: "Box", without it it would be displayed as "Common".
   # Multiple $refs can be used (multiple definitions merged).
   Box:
-    type: "object"
+    type: object
     allOf:
     - $ref: "#/x-definitions/Common"
     - title: "Box"
       properties:
         volume:
-          type: "integer"
-          format: "int32"
+          type: integer
+          format: int32
           description: "Approximate volume of the box, not used for validation."
         sealed:
-          type: "boolean"
+          type: boolean
           default: false
           description: |
             When sealed the box does not allow item manipulation (it is read-only).
             The value is optional but always returned when read (defaults to `false`).
       xml:
         name: "Box"
+  Boxes:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/Box"
   # Item demonstrates how to reuse properties via references, but we still have to enumerate them.
   Item:
-    type: "object"
+    type: object
     allOf:
       - $ref: "#/x-definitions/Common"
       - title: "Item"
         properties:
           box:
-            type: "string"
-            format: "uri"
+            type: string
+            # As documented in http://swagger.io/specification/ section Data Types it is
+            # up to us to use formats beyond JSON-Schema (if it serves documentation purposes).
+            format: uri
             description: "URI of the box containing the item (if any)."
         xml:
           name: "Item"
@@ -718,8 +721,6 @@ definitions:
         $ref: "#/x-properties/created"
       updated:
         $ref: "#/x-properties/updated"
-      key:
-        $ref: "#/x-properties/key"
       name:
         $ref: "#/x-properties/name"
         description: "Human readable name of the label"
