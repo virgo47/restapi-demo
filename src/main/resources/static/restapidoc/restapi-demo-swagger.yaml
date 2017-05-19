@@ -30,36 +30,40 @@ produces:
 #- "application/xml"
 - "application/json"
 tags:
-- name: "box"
+- name: box
   description: "Management of boxes. Boxes can hold various items."
   externalDocs:
     description: "What is a box? And where is this linked displayed anyway?"
     url: "/index.html#box"
-- name: "item"
+- name: item
   description: "Access to Items stored in the boxes."
-- name: "label"
+- name: label
   description: "Access to Labels and further to items marked by them."
 # Reusable response definitions
 responses:
-  ok:
-    description: Operation finished successfully.
+  # HTTP 200 OK is not described here, as it should have a body and we need to specify schema
+  # that is specific for various resource paths.
   created:
     description: Resource created successfully.
     headers:
       Location:
         description: URI of the created resource
         type: string
+  noContent:
+    description: Operation finished successfully, no body is returned.
   badRequest:
     description: Bad request - invalid structure or other logical error. Can be fixed by the client.
     schema:
       $ref: "#/definitions/Error"
   notFound:
-    description: Resource not found.
+    description: |
+      Resource not found. Wrong resource path was used. In case of paths with ID invalid ID might
+      have been provided.
 paths:
   /boxes:
     get:
       tags:
-      - "box"
+      - box
       summary: "List existing boxes"
       responses:
         200:
@@ -68,7 +72,7 @@ paths:
           $ref: "#/responses/badRequest"
     post:
       tags:
-      - "box"
+      - box
       summary: "Add a new available box"
       description: |
         Adds a new box so we can put items in it. Box does not have to be named although it is
@@ -90,36 +94,33 @@ paths:
 #      - petstore_auth:
 #        - "write:pets"
 #        - "read:pets"
+  /boxes/{boxId}:
+    get:
+      tags:
+      - box
+      summary: |
+        Read the box with specified ID.
+      responses:
+        200:
+          description: "Box was found and returned."
+          schema: "#/definitions/Box"
+        404:
+          $ref: "#/responses/notFound"
     put:
       tags:
-      - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-      - "application/json"
-      - "application/xml"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Pet object that needs to be added to the store"
-        required: true
-        schema:
-          $ref: "#/definitions/Pet"
+      - box
+      # Summary does not support markup, but description does
+      summary: Create or update the box with specified ID.
+      description: |
+        Create or update the box with specified ID. This may produce following situations:
+        * Two
+        * How to do markup
       responses:
+        200:
+          description: "Box was successfully created or updated and its current content returned."
+          schema: "#/definitions/Box"
         400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
+          $ref: "#/responses/badRequest"
   /pet/findByStatus:
     get:
       tags:
@@ -599,18 +600,21 @@ paths:
           description: "Invalid username supplied"
         404:
           description: "User not found"
-securityDefinitions:
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
-    flow: "implicit"
-    scopes:
-      write:pets: "modify pets in your account"
-      read:pets: "read your pets"
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
+
+# TODO this must be thought through as well
+#securityDefinitions:
+#  petstore_auth:
+#    type: "oauth2"
+#    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+#    flow: "implicit"
+#    scopes:
+#      write:pets: "modify pets in your account"
+#      read:pets: "read your pets"
+#  api_key:
+#    type: "apiKey"
+#    name: "api_key"
+#    in: "header"
+
 # For "abstract" definitions we don't want to display, but we want to reuse them.
 # Reuse has some problems though - property descriptions must be more generic, so it's
 # "Technical name. ..." instead of "Technical name of the box. ..."
