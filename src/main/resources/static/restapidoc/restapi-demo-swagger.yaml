@@ -62,14 +62,15 @@ responses:
     description: |
       Resource not found. Wrong resource path was used. In case of paths with ID invalid ID might
       have been provided.
-x-pagination-headers:
-
 paths:
   /boxes:
     get:
       tags:
       - box
-      summary: "List existing boxes"
+      summary: "List boxes"
+      # Optional operationId must be unique and can be used by tools.
+      # Not sure how to use it if we don't generate from this specification.
+      operationId: "listBoxes"
       # TODO add filtering/paging demo
       responses:
         200:
@@ -83,7 +84,7 @@ paths:
     post:
       tags:
       - box
-      summary: "Add a new available box"
+      summary: "Add a new box"
       description: |
         Adds a new box so we can put items in it. Box does not have to be named although it is
         recommended.
@@ -100,6 +101,7 @@ paths:
           $ref: "#/responses/created"
         400:
           $ref: "#/responses/badRequest"
+# TODO: ignored everywhere for now
 #      security:
 #      - petstore_auth:
 #        - "write:pets"
@@ -108,8 +110,8 @@ paths:
     get:
       tags:
       - box
-      summary: |
-        Read the box with specified ID.
+      summary: "Read a box"
+      operationId: "readBox"
       responses:
         200:
           description: "Box was found and returned."
@@ -120,17 +122,51 @@ paths:
       tags:
       - box
       # Summary does not support markup, but description does
-      summary: Create or update the box with specified ID.
+      summary: "Update a box"
       description: |
         Updates the box with specified ID. Following validations
         * For existing ID it updates the box.
         * How to do markup
+      operationId: "updateBox"
       responses:
         200:
           description: "Box was successfully created or updated and its current content returned."
           schema: "#/definitions/Boxes"
         400:
           $ref: "#/responses/badRequest"
+    delete:
+      tags:
+      - box
+      summary: "Delete an empty box"
+      description: |
+        Deletes the box if it is empty. Deletion fails if the box is not empty, it must be emptied
+        before either by moving all its items somewhere else or by emptying the whole box.
+      operationId: "deleteBox"
+      responses:
+        204:
+          $ref: "#/responses/noContent"
+        400:
+          description: Box is not empty and cannot be deleted.
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          $ref: "#/responses/notFound"
+  /boxes/{boxId}/empty:
+    post:
+      tags:
+      - box
+      summary: "Empty a box"
+      description: |
+        Empties the box - this puts all the items away from it, the items will not be in any
+        box anymore, but they can still be found in the list of items or by their ID.
+      operationId: "emptyBox"
+      responses:
+        # Alternatively 200 with list of items thrown out of that box?
+        204:
+          $ref: "#/responses/noContent"
+        404:
+          $ref: "#/responses/notFound"
+
   /pet/findByStatus:
     get:
       tags:
@@ -164,16 +200,12 @@ paths:
               $ref: "#/definitions/Pet"
         400:
           description: "Invalid status value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
   /pet/findByTags:
     get:
       tags:
       - "pet"
       summary: "Finds Pets by tags"
-      description: "Muliple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
+      description: "Multiple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
       operationId: "findPetsByTags"
       produces:
       - "application/xml"
@@ -196,10 +228,6 @@ paths:
               $ref: "#/definitions/Pet"
         400:
           description: "Invalid tag value"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
       deprecated: true
   /pet/{petId}:
     get:
@@ -260,35 +288,6 @@ paths:
       responses:
         405:
           description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-    delete:
-      tags:
-      - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "api_key"
-        in: "header"
-        required: false
-        type: "string"
-      - name: "petId"
-        in: "path"
-        description: "Pet id to delete"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
       security:
       - petstore_auth:
         - "write:pets"
@@ -672,10 +671,13 @@ definitions:
   # Note the title: "Box", without it it would be displayed as "Common".
   # Multiple $refs can be used (multiple definitions merged).
   Box:
-    type: object
+    # TODO: This description does not work, contrary to the exmamples at specification page.
+    description: "What?"
     allOf:
     - $ref: "#/x-definitions/Common"
     - title: "Box"
+      # TODO: description must be placed here, just like title... is it OK or bug?
+      description: "Representation of a box."
       properties:
         volume:
           type: integer
@@ -687,8 +689,6 @@ definitions:
           description: |
             When sealed the box does not allow item manipulation (it is read-only).
             The value is optional but always returned when read (defaults to `false`).
-      xml:
-        name: "Box"
   Boxes:
     type: object
     properties:
@@ -709,8 +709,12 @@ definitions:
             # up to us to use formats beyond JSON-Schema (if it serves documentation purposes).
             format: uri
             description: "URI of the box containing the item (if any)."
-        xml:
-          name: "Item"
+          labels:
+            type: array
+            # TODO: Currently this is formatted strangely in Swagger UI, will we report a bug?
+            description: "Labels attached to the item."
+            items:
+              $ref: "#/definitions/Label"
   # Label shows the same, we try to "override" some description - but that does not work.
   Label:
     type: "object"
@@ -726,8 +730,6 @@ definitions:
         description: "Human readable name of the label"
       description:
         $ref: "#/x-properties/description"
-    xml:
-      name: "Label"
   User:
     type: "object"
     properties:
@@ -750,8 +752,6 @@ definitions:
         type: "integer"
         format: "int32"
         description: "User Status"
-    xml:
-      name: "User"
   Pet:
     type: "object"
     required:
@@ -768,18 +768,8 @@ definitions:
         example: "doggie"
       photoUrls:
         type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
         items:
           type: "string"
-      tags:
-        type: "array"
-        xml:
-          name: "tag"
-          wrapped: true
-        items:
-          $ref: "#/definitions/Tag"
       status:
         type: "string"
         description: "pet status in the store"
@@ -787,8 +777,6 @@ definitions:
         - "available"
         - "pending"
         - "sold"
-    xml:
-      name: "Pet"
   Error:
     type: object
     properties:
