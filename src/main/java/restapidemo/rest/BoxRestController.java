@@ -2,12 +2,12 @@ package restapidemo.rest;
 
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static restapidemo.rest.RestChecker.checkForbiddenAttribute;
 
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,12 +27,14 @@ public class BoxRestController {
 	}
 
 	@RequestMapping(method = GET)
-	public Collection<Box> list() {
+	public Collection<Box> listBoxes() {
 		return boxRepository.list();
 	}
 
 	@RequestMapping(method = POST)
-	public ResponseEntity<Void> list(@RequestBody Box box) {
+	public ResponseEntity<Void> addBox(@RequestBody Box box) {
+		checkForbiddenAttribute(box.getId(),
+			"ID is assigned automatically and MUST NOT be provided");
 		Box newBox = boxRepository.save(box);
 
 		return ResponseEntity.created(

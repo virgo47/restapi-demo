@@ -70,6 +70,7 @@ paths:
       summary: "List boxes"
       # Optional operationId must be unique and can be used by tools.
       # Not sure how to use it if we don't generate from this specification.
+      # Perhaps we want to name the methods this way.
       operationId: "listBoxes"
       # TODO add filtering/paging demo
       responses:

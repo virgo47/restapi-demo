@@ -18,19 +18,26 @@ public class RestErrorHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleMissingParameter(MissingServletRequestParameterException e) {
-		return createErrorResponse(ErrorResponse.MISSING_PARAMETER, e.toString());
+		return createErrorResponse(ErrorCode.MISSING_PARAMETER, e.toString());
 	}
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	@ResponseBody
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ErrorResponse handleMissingBody() {
-		return createErrorResponse(ErrorResponse.MISSING_BODY, "Body is mandatory, but missing");
+		return createErrorResponse(ErrorCode.MISSING_BODY, "Body is mandatory, but missing");
 	}
 
-	private ErrorResponse createErrorResponse(int code, String message) {
+	@ExceptionHandler(CheckException.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ErrorResponse handlePreconditionFailure(CheckException e) {
+		return createErrorResponse(e.code, e.getMessage());
+	}
+
+	private ErrorResponse createErrorResponse(ErrorCode code, String message) {
 		ErrorResponse errorResponse = new ErrorResponse();
-		errorResponse.code = code;
+		errorResponse.code = code.code;
 		errorResponse.requestId = (String) RequestContextHolder.getRequestAttributes()
 			.getAttribute(ThreadRenameFilter.REQ_ID_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 		errorResponse.message = message;
