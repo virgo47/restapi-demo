@@ -35,9 +35,16 @@ public class RestErrorHandler {
 		return createErrorResponse(e.code, e.getMessage());
 	}
 
+	@ExceptionHandler(NotFoundException.class)
+	@ResponseBody
+	@ResponseStatus(HttpStatus.NOT_FOUND)
+	public ErrorResponse handleNotFound() {
+		return createErrorResponse(ErrorCode.MISSING_PARAMETER, "Resource not found");
+	}
+
 	private ErrorResponse createErrorResponse(ErrorCode code, String message) {
 		ErrorResponse errorResponse = new ErrorResponse();
-		errorResponse.code = code.code;
+		errorResponse.code = code.codeValue;
 		errorResponse.requestId = (String) RequestContextHolder.getRequestAttributes()
 			.getAttribute(ThreadRenameFilter.REQ_ID_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 		errorResponse.message = message;

@@ -3,13 +3,16 @@ package restapidemo.rest;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static restapidemo.rest.RestChecker.checkForbiddenAttribute;
+import static restapidemo.rest.RestChecker.checkFound;
 
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import restapidemo.datalayer.BoxRepository;
@@ -43,5 +46,11 @@ public class BoxRestController {
 				.build()
 				.toUri())
 			.build();
+	}
+
+	@RequestMapping(value = "/{id}", method = GET)
+	public Box readBox(@PathVariable("id") Long id) {
+		return checkFound(
+			boxRepository.find(id));
 	}
 }

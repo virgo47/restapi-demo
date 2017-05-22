@@ -11,4 +11,11 @@ public class RestChecker {
 			throw new CheckException(ErrorCode.FORBIDDEN_ATTRIBUTE, errorMessage);
 		}
 	}
+
+	public static <T> T checkFound(T object) {
+		if (object == null) {
+			throw new NotFoundException();
+		}
+		return object;
+	}
 }

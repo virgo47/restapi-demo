@@ -2,6 +2,7 @@ package restapidemo.rest;
 
 public enum ErrorCode {
 
+	NOT_FOUND(404),
 	MISSING_BODY(10000),
 	MISSING_PARAMETER(10001),
 
@@ -12,9 +13,9 @@ public enum ErrorCode {
 	/** Attribute is not allowed in this case (e.g. ID specified for creation). */
 	FORBIDDEN_ATTRIBUTE(11002);
 
-	public final int code;
+	public final int codeValue;
 
-	ErrorCode(int code) {
-		this.code = code;
+	ErrorCode(int codeValue) {
+		this.codeValue = codeValue;
 	}
 }
