@@ -23,12 +23,15 @@ public class RestDemoMain {
 	public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
 		MappingJackson2HttpMessageConverter jsonConverter =
 			new MappingJackson2HttpMessageConverter();
-		ObjectMapper objectMapper = new ObjectMapper();
+		// We can either create new ObjectMapper and set it (setter/constructor)
+		// or modify the default one.
+//		ObjectMapper objectMapper = new ObjectMapper();
+//		jsonConverter.setObjectMapper(objectMapper);
+		ObjectMapper objectMapper = jsonConverter.getObjectMapper();
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 		objectMapper.registerModule(new DemoConverterModule());
-		jsonConverter.setObjectMapper(objectMapper);
 		return jsonConverter;
 	}
 

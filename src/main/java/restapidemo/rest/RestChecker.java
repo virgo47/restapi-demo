@@ -12,6 +12,13 @@ public class RestChecker {
 		}
 	}
 
+	public static void checkState(boolean condition, String errorMessage) {
+		if (!condition) {
+			throw new CheckException(ErrorCode.ILLEGAL_STATE, errorMessage);
+		}
+	}
+
+	/** Enforces 404 Not Found if object is null. */
 	public static <T> T checkFound(T object) {
 		if (object == null) {
 			throw new NotFoundException();

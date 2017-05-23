@@ -2,6 +2,10 @@ package restapidemo.entities;
 
 import java.time.Instant;
 
+/**
+ * Common entity superclass. Entities are used directly as JSON objects, which is not
+ * necessarily the best design. For more serious APIs I'd keep API and domain models separate.
+ */
 public abstract class Entity {
 
 	private Long id;

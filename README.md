@@ -25,3 +25,5 @@ TODO:
 * Separate model for API instead of reuse of entities.
 * Demonstrate field inclusion/exclusion.
 * Security for both application and Swagger definition.
+* Tests using Spring? (A bit beyond the scope as the whole demo is just supporting act for
+YAML-based Swagger config.)

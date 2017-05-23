@@ -11,7 +11,10 @@ public enum ErrorCode {
 	MISSING_ATTRIBUTE(11001),
 
 	/** Attribute is not allowed in this case (e.g. ID specified for creation). */
-	FORBIDDEN_ATTRIBUTE(11002);
+	FORBIDDEN_ATTRIBUTE(11002),
+
+	/** Current state of the resource does not permit the operation. */
+	ILLEGAL_STATE(12000);
 
 	public final int codeValue;
 

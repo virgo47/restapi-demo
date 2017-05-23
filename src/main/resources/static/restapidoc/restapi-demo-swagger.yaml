@@ -166,7 +166,7 @@ paths:
           required: true
           type: "integer"
           format: "int64"
-    responses:
+      responses:
         204:
           $ref: "#/responses/noContent"
         400:
@@ -174,7 +174,7 @@ paths:
           schema:
             $ref: "#/definitions/Error"
         404:
-          $ref: "#/responses/notF ound"
+          $ref: "#/responses/notFound"
   /boxes/{boxId}/empty:
     post:
       tags:
