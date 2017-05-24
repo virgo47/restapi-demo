@@ -1,4 +1,4 @@
-package restapidemo.entities;
+package virgo47.restapidemo.entities;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,7 +10,7 @@ public class Box extends Entity {
 	public Integer volume;
 	public boolean sealed;
 
-	private List<Item> items = new ArrayList<>();
+	private final List<Item> items = new ArrayList<>();
 
 	public Collection<Item> items() {
 		return items;

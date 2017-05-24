@@ -91,6 +91,9 @@ paths:
       description: |
         Adds a new box so we can put items in it. Box does not have to be named although it is
         recommended.
+        Validations:
+        * ID must not be specified.
+        * Any specified created/updated timestamps are ignored and set internally.
       operationId: "addBox"
       parameters:
       - in: "body"
@@ -109,6 +112,10 @@ paths:
 #      - petstore_auth:
 #        - "write:pets"
 #        - "read:pets"
+
+# We use descriptive names of path (and other) parameters, not just "id", but "boxId".
+# The same we want to apply in code as well, let's use the same parameter and operation IDs
+# both in code and in the specification/documentation.
   /boxes/{boxId}:
     get:
       tags:
@@ -134,9 +141,9 @@ paths:
       # Summary does not support markup, but description does
       summary: "Update a box"
       description: |
-        Updates the box with specified ID. Following validations
-        * For existing ID it updates the box.
-        * How to do markup
+        Updates the box with specified ID.
+        Validations:
+        * Existing ID must be specified in the body and it must match the ID from the path.
       operationId: "updateBox"
       parameters:
       - name: "boxId"
@@ -145,10 +152,16 @@ paths:
         required: true
         type: "integer"
         format: "int64"
+      - in: "body"
+        name: "body"
+        description: "New box object"
+        required: true
+        schema:
+          $ref: "#/definitions/Item"
       responses:
         200:
-          description: "Box was successfully created or updated and its current content returned."
-          schema: "#/definitions/Boxes"
+          description: "Box was successfully updated and its current content returned."
+          schema: "#/definitions/Box"
         400:
           $ref: "#/responses/badRequest"
     delete:
@@ -185,454 +198,559 @@ paths:
         box anymore, but they can still be found in the list of items or by their ID.
       operationId: "emptyBox"
       responses:
-        # Alternatively 200 with list of items thrown out of that box?
+        # Alternatively 200 with list of items thrown out of that box? Without limits?
+        # Better just let the client list through items in the box beforehand.
         204:
           $ref: "#/responses/noContent"
         404:
           $ref: "#/responses/notFound"
 
-  /pet/findByStatus:
+  /items:
     get:
       tags:
-      - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "status"
-        in: "query"
-        description: "Status values that need to be considered for filter"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-          enum:
-          - "available"
-          - "pending"
-          - "sold"
-          default: "available"
-        collectionFormat: "multi"
+      - item
+      summary: "List items"
+      operationId: "listItems"
+      # TODO add filtering/paging demo
       responses:
         200:
-          description: "successful operation"
+          description: "Returns array of all items."
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
+            $ref: "#/definitions/Items"
+        204:
+          $ref: "#/responses/noContent"
         400:
-          description: "Invalid status value"
-  /pet/findByTags:
-    get:
-      tags:
-      - "pet"
-      summary: "Finds Pets by tags"
-      description: "Multiple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "tags"
-        in: "query"
-        description: "Tags to filter by"
-        required: true
-        type: "array"
-        items:
-          type: "string"
-        collectionFormat: "multi"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      deprecated: true
-  /pet/{petId}:
-    get:
-      tags:
-      - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to return"
-        required: true
-        type: "integer"
-        format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-      - api_key: []
+          $ref: "#/responses/badRequest"
     post:
       tags:
-      - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
-      consumes:
-      - "application/x-www-form-urlencoded"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet that needs to be updated"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "name"
-        in: "formData"
-        description: "Updated name of the pet"
-        required: false
-        type: "string"
-      - name: "status"
-        in: "formData"
-        description: "Updated status of the pet"
-        required: false
-        type: "string"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-      - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
-      consumes:
-      - "multipart/form-data"
-      produces:
-      - "application/json"
-      parameters:
-      - name: "petId"
-        in: "path"
-        description: "ID of pet to update"
-        required: true
-        type: "integer"
-        format: "int64"
-      - name: "additionalMetadata"
-        in: "formData"
-        description: "Additional data to pass to server"
-        required: false
-        type: "string"
-      - name: "file"
-        in: "formData"
-        description: "file to upload"
-        required: false
-        type: "file"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
-  /store/inventory:
-    get:
-      tags:
-      - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-      - "application/json"
-      parameters: []
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-      - api_key: []
-  /store/order:
-    post:
-      tags:
-      - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      produces:
-      - "application/xml"
-      - "application/json"
+      - item
+      summary: "Add a new item"
+      description: |
+        Adds a new item.
+# TODO how to specify box right here? Is embedded box with ID enough?
+      operationId: "addItem"
       parameters:
       - in: "body"
         name: "body"
-        description: "order placed for purchasing the pet"
+        description: "New item object"
         required: true
         schema:
-          $ref: "#/definitions/Order"
+          $ref: "#/definitions/Item"
       responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
+        201:
+          $ref: "#/responses/created"
         400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
+          $ref: "#/responses/badRequest"
+  /items/{itemId}:
     get:
       tags:
-      - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.         Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-      - "application/xml"
-      - "application/json"
+      - item
+      summary: "Read an item"
+      operationId: "readItem"
       parameters:
-      - name: "orderId"
+      - name: "itemId"
         in: "path"
-        description: "ID of pet that needs to be fetched"
+        description: "ID of item to return"
         required: true
         type: "integer"
-        maximum: 10.0
-        minimum: 1.0
         format: "int64"
       responses:
         200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
+          description: "Item was found and returned."
+          schema: "#/definitions/Item"
         404:
-          description: "Order not found"
-    delete:
-      tags:
-      - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.         Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "orderId"
-        in: "path"
-        description: "ID of the order that needs to be deleted"
-        required: true
-        type: "integer"
-        minimum: 1.0
-        format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /user:
-    post:
-      tags:
-      - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
-        required: true
-        schema:
-          $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithArray:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-      - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "body"
-        description: "List of user object"
-        required: true
-        schema:
-          type: "array"
-          items:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/login:
-    get:
-      tags:
-      - "user"
-      summary: "Logs user into the system"
-      description: ""
-      operationId: "loginUser"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "username"
-        in: "query"
-        description: "The user name for login"
-        required: true
-        type: "string"
-      - name: "password"
-        in: "query"
-        description: "The password for login in clear text"
-        required: true
-        type: string
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "string"
-          headers:
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-            X-Expires-After:
-              type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-        400:
-          description: "Invalid username/password supplied"
-  /user/logout:
-    get:
-      tags:
-      - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      operationId: "logoutUser"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters: []
-      responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
-    get:
-      tags:
-      - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
-      produces:
-      - "application/xml"
-      - "application/json"
-      parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be fetched. Use user1 for testing. "
-        required: true
-        type: "string"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
+          $ref: "#/responses/notFound"
     put:
       tags:
-      - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
-      produces:
-      - "application/xml"
-      - "application/json"
+      - item
+      summary: "Update an item"
+      description: |
+        Updates the item with specified ID.
+        Validations:
+        * For existing ID it updates the item.
+      operationId: "updateItem"
       parameters:
-      - name: "username"
+      - name: "itemId"
         in: "path"
-        description: "name that need to be updated"
+        description: "ID of item to update"
         required: true
-        type: "string"
+        type: "integer"
+        format: "int64"
       - in: "body"
         name: "body"
-        description: "Updated user object"
+        description: "Updated item object"
         required: true
         schema:
-          $ref: "#/definitions/User"
+          $ref: "#/definitions/Item"
       responses:
+        200:
+          description: "Item was successfully updated and its current content returned."
+          schema: "#/definitions/Item"
         400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
+          $ref: "#/responses/badRequest"
     delete:
       tags:
-      - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-      - "application/xml"
-      - "application/json"
+      - item
+      summary: "Delete an item"
+      description: |
+        Deletes the item specified by ID.
+      operationId: "deleteItem"
       parameters:
-      - name: "username"
-        in: "path"
-        description: "The name that needs to be deleted"
-        required: true
-        type: "string"
+        - name: "itemId"
+          in: "path"
+          description: "ID of item to delete"
+          required: true
+          type: "integer"
+          format: "int64"
       responses:
-        400:
-          description: "Invalid username supplied"
+        204:
+          $ref: "#/responses/noContent"
         404:
-          description: "User not found"
+          $ref: "#/responses/notFound"
+
+# TODO: Use whatever handy, otherwise let's get rid of this
+#  /pet/findByStatus:
+#    get:
+#      tags:
+#      - "pet"
+#      summary: "Finds Pets by status"
+#      description: "Multiple status values can be provided with comma separated strings"
+#      operationId: "findPetsByStatus"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "status"
+#        in: "query"
+#        description: "Status values that need to be considered for filter"
+#        required: true
+#        type: "array"
+#        items:
+#          type: "string"
+#          enum:
+#          - "available"
+#          - "pending"
+#          - "sold"
+#          default: "available"
+#        collectionFormat: "multi"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            type: "array"
+#            items:
+#              $ref: "#/definitions/Pet"
+#        400:
+#          description: "Invalid status value"
+#  /pet/findByTags:
+#    get:
+#      tags:
+#      - "pet"
+#      summary: "Finds Pets by tags"
+#      description: "Multiple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
+#      operationId: "findPetsByTags"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "tags"
+#        in: "query"
+#        description: "Tags to filter by"
+#        required: true
+#        type: "array"
+#        items:
+#          type: "string"
+#        collectionFormat: "multi"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            type: "array"
+#            items:
+#              $ref: "#/definitions/Pet"
+#        400:
+#          description: "Invalid tag value"
+#      deprecated: true
+#  /pet/{petId}:
+#    get:
+#      tags:
+#      - "pet"
+#      summary: "Find pet by ID"
+#      description: "Returns a single pet"
+#      operationId: "getPetById"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "petId"
+#        in: "path"
+#        description: "ID of pet to return"
+#        required: true
+#        type: "integer"
+#        format: "int64"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: "#/definitions/Pet"
+#        400:
+#          description: "Invalid ID supplied"
+#        404:
+#          description: "Pet not found"
+#      security:
+#      - api_key: []
+#    post:
+#      tags:
+#      - "pet"
+#      summary: "Updates a pet in the store with form data"
+#      description: ""
+#      operationId: "updatePetWithForm"
+#      consumes:
+#      - "application/x-www-form-urlencoded"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "petId"
+#        in: "path"
+#        description: "ID of pet that needs to be updated"
+#        required: true
+#        type: "integer"
+#        format: "int64"
+#      - name: "name"
+#        in: "formData"
+#        description: "Updated name of the pet"
+#        required: false
+#        type: "string"
+#      - name: "status"
+#        in: "formData"
+#        description: "Updated status of the pet"
+#        required: false
+#        type: "string"
+#      responses:
+#        405:
+#          description: "Invalid input"
+#      security:
+#      - petstore_auth:
+#        - "write:pets"
+#        - "read:pets"
+#  /pet/{petId}/uploadImage:
+#    post:
+#      tags:
+#      - "pet"
+#      summary: "uploads an image"
+#      description: ""
+#      operationId: "uploadFile"
+#      consumes:
+#      - "multipart/form-data"
+#      produces:
+#      - "application/json"
+#      parameters:
+#      - name: "petId"
+#        in: "path"
+#        description: "ID of pet to update"
+#        required: true
+#        type: "integer"
+#        format: "int64"
+#      - name: "additionalMetadata"
+#        in: "formData"
+#        description: "Additional data to pass to server"
+#        required: false
+#        type: "string"
+#      - name: "file"
+#        in: "formData"
+#        description: "file to upload"
+#        required: false
+#        type: "file"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: "#/definitions/ApiResponse"
+#      security:
+#      - petstore_auth:
+#        - "write:pets"
+#        - "read:pets"
+#  /store/inventory:
+#    get:
+#      tags:
+#      - "store"
+#      summary: "Returns pet inventories by status"
+#      description: "Returns a map of status codes to quantities"
+#      operationId: "getInventory"
+#      produces:
+#      - "application/json"
+#      parameters: []
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            type: "object"
+#            additionalProperties:
+#              type: "integer"
+#              format: "int32"
+#      security:
+#      - api_key: []
+#  /store/order:
+#    post:
+#      tags:
+#      - "store"
+#      summary: "Place an order for a pet"
+#      description: ""
+#      operationId: "placeOrder"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - in: "body"
+#        name: "body"
+#        description: "order placed for purchasing the pet"
+#        required: true
+#        schema:
+#          $ref: "#/definitions/Order"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: "#/definitions/Order"
+#        400:
+#          description: "Invalid Order"
+#  /store/order/{orderId}:
+#    get:
+#      tags:
+#      - "store"
+#      summary: "Find purchase order by ID"
+#      description: "For valid response try integer IDs with value >= 1 and <= 10.         Other values will generated exceptions"
+#      operationId: "getOrderById"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "orderId"
+#        in: "path"
+#        description: "ID of pet that needs to be fetched"
+#        required: true
+#        type: "integer"
+#        maximum: 10.0
+#        minimum: 1.0
+#        format: "int64"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: "#/definitions/Order"
+#        400:
+#          description: "Invalid ID supplied"
+#        404:
+#          description: "Order not found"
+#    delete:
+#      tags:
+#      - "store"
+#      summary: "Delete purchase order by ID"
+#      description: "For valid response try integer IDs with positive integer value.         Negative or non-integer values will generate API errors"
+#      operationId: "deleteOrder"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "orderId"
+#        in: "path"
+#        description: "ID of the order that needs to be deleted"
+#        required: true
+#        type: "integer"
+#        minimum: 1.0
+#        format: "int64"
+#      responses:
+#        400:
+#          description: "Invalid ID supplied"
+#        404:
+#          description: "Order not found"
+#  /user:
+#    post:
+#      tags:
+#      - "user"
+#      summary: "Create user"
+#      description: "This can only be done by the logged in user."
+#      operationId: "createUser"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - in: "body"
+#        name: "body"
+#        description: "Created user object"
+#        required: true
+#        schema:
+#          $ref: "#/definitions/User"
+#      responses:
+#        default:
+#          description: "successful operation"
+#  /user/createWithArray:
+#    post:
+#      tags:
+#      - "user"
+#      summary: "Creates list of users with given input array"
+#      description: ""
+#      operationId: "createUsersWithArrayInput"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - in: "body"
+#        name: "body"
+#        description: "List of user object"
+#        required: true
+#        schema:
+#          type: "array"
+#          items:
+#            $ref: "#/definitions/User"
+#      responses:
+#        default:
+#          description: "successful operation"
+#  /user/createWithList:
+#    post:
+#      tags:
+#      - "user"
+#      summary: "Creates list of users with given input array"
+#      description: ""
+#      operationId: "createUsersWithListInput"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - in: "body"
+#        name: "body"
+#        description: "List of user object"
+#        required: true
+#        schema:
+#          type: "array"
+#          items:
+#            $ref: "#/definitions/User"
+#      responses:
+#        default:
+#          description: "successful operation"
+#  /user/login:
+#    get:
+#      tags:
+#      - "user"
+#      summary: "Logs user into the system"
+#      description: ""
+#      operationId: "loginUser"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "username"
+#        in: "query"
+#        description: "The user name for login"
+#        required: true
+#        type: "string"
+#      - name: "password"
+#        in: "query"
+#        description: "The password for login in clear text"
+#        required: true
+#        type: string
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            type: "string"
+#          headers:
+#            X-Rate-Limit:
+#              type: "integer"
+#              format: "int32"
+#              description: "calls per hour allowed by the user"
+#            X-Expires-After:
+#              type: "string"
+#              format: "date-time"
+#              description: "date in UTC when token expires"
+#        400:
+#          description: "Invalid username/password supplied"
+#  /user/logout:
+#    get:
+#      tags:
+#      - "user"
+#      summary: "Logs out current logged in user session"
+#      description: ""
+#      operationId: "logoutUser"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters: []
+#      responses:
+#        default:
+#          description: "successful operation"
+#  /user/{username}:
+#    get:
+#      tags:
+#      - "user"
+#      summary: "Get user by user name"
+#      description: ""
+#      operationId: "getUserByName"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "username"
+#        in: "path"
+#        description: "The name that needs to be fetched. Use user1 for testing. "
+#        required: true
+#        type: "string"
+#      responses:
+#        200:
+#          description: "successful operation"
+#          schema:
+#            $ref: "#/definitions/User"
+#        400:
+#          description: "Invalid username supplied"
+#        404:
+#          description: "User not found"
+#    put:
+#      tags:
+#      - "user"
+#      summary: "Updated user"
+#      description: "This can only be done by the logged in user."
+#      operationId: "updateUser"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "username"
+#        in: "path"
+#        description: "name that need to be updated"
+#        required: true
+#        type: "string"
+#      - in: "body"
+#        name: "body"
+#        description: "Updated user object"
+#        required: true
+#        schema:
+#          $ref: "#/definitions/User"
+#      responses:
+#        400:
+#          description: "Invalid user supplied"
+#        404:
+#          description: "User not found"
+#    delete:
+#      tags:
+#      - "user"
+#      summary: "Delete user"
+#      description: "This can only be done by the logged in user."
+#      operationId: "deleteUser"
+#      produces:
+#      - "application/xml"
+#      - "application/json"
+#      parameters:
+#      - name: "username"
+#        in: "path"
+#        description: "The name that needs to be deleted"
+#        required: true
+#        type: "string"
+#      responses:
+#        400:
+#          description: "Invalid username supplied"
+#        404:
+#          description: "User not found"
 
 # TODO this must be thought through as well
 #securityDefinitions:
@@ -720,6 +838,7 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/Box"
+
   # Item demonstrates how to reuse properties via references, but we still have to enumerate them.
   Item:
     type: object
@@ -739,6 +858,14 @@ definitions:
             description: "Labels attached to the item."
             items:
               $ref: "#/definitions/Label"
+  Items:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/Item"
+
   # Label shows the same, we try to "override" some description - but that does not work.
   Label:
     type: "object"
@@ -754,53 +881,6 @@ definitions:
         description: "Human readable name of the label"
       description:
         $ref: "#/x-properties/description"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        items:
-          type: "string"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
   Error:
     type: object
     properties:

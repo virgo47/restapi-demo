@@ -1,4 +1,4 @@
-package restapidemo.rest;
+package virgo47.restapidemo.rest;
 
 /**
  * Static class with various check methods (like various Assert classes, but with its own

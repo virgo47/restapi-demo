@@ -1,12 +1,12 @@
-package restapidemo.datalayer;
+package virgo47.restapidemo.datalayer;
+
+import virgo47.restapidemo.entities.Entity;
 
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-
-import restapidemo.entities.Entity;
 
 public class CommonRepository<T extends Entity> {
 

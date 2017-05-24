@@ -1,4 +1,4 @@
-package restapidemo.entities;
+package virgo47.restapidemo.entities;
 
 /**
  * Label can be attached to an item. The same label can be attached to many items across

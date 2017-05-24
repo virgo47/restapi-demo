@@ -1,4 +1,4 @@
-package restapidemo;
+package virgo47.restapidemo;
 
 import java.io.IOException;
 import java.net.URI;

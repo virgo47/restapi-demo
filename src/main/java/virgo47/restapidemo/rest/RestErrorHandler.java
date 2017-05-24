@@ -1,4 +1,6 @@
-package restapidemo.rest;
+package virgo47.restapidemo.rest;
+
+import virgo47.restapidemo.ThreadRenameFilter;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -9,7 +11,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
-import restapidemo.ThreadRenameFilter;
 
 @ControllerAdvice
 public class RestErrorHandler {

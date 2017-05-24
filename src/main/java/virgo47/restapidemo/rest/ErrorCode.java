@@ -1,4 +1,4 @@
-package restapidemo.rest;
+package virgo47.restapidemo.rest;
 
 public enum ErrorCode {
 

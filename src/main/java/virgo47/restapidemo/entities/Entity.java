@@ -1,4 +1,4 @@
-package restapidemo.entities;
+package virgo47.restapidemo.entities;
 
 import java.time.Instant;
 

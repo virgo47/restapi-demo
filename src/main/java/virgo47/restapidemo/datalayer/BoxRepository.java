@@ -1,7 +1,8 @@
-package restapidemo.datalayer;
+package virgo47.restapidemo.datalayer;
+
+import virgo47.restapidemo.entities.Box;
 
 import org.springframework.stereotype.Repository;
-import restapidemo.entities.Box;
 
 @Repository
 public class BoxRepository extends CommonRepository<Box> {

@@ -1,11 +1,11 @@
-package restapidemo.rest;
+package virgo47.restapidemo.rest;
 
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
-import static restapidemo.rest.RestChecker.checkForbiddenAttribute;
-import static restapidemo.rest.RestChecker.checkFound;
-import static restapidemo.rest.RestChecker.checkState;
+
+import virgo47.restapidemo.datalayer.BoxRepository;
+import virgo47.restapidemo.entities.Box;
 
 import java.util.Collection;
 
@@ -17,9 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import restapidemo.datalayer.BoxRepository;
-import restapidemo.entities.Box;
 
 @RestController
 @RequestMapping(value = "/boxes")
@@ -39,29 +36,36 @@ public class BoxRestController {
 
 	@RequestMapping(method = POST)
 	public ResponseEntity<Void> addBox(@RequestBody Box box) {
-		checkForbiddenAttribute(box.getId(),
+		RestChecker.checkForbiddenAttribute(box.getId(),
 			"ID is assigned automatically and MUST NOT be provided");
 		Box newBox = boxRepository.save(box);
 
-		return ResponseEntity.created(
-			ServletUriComponentsBuilder.fromCurrentRequest()
-				.pathSegment(newBox.getId().toString())
-				.build()
-				.toUri())
-			.build();
+		return ControllerUtils.createdResponse(newBox);
 	}
 
-	@RequestMapping(value = "/{id}", method = GET)
-	public Box readBox(@PathVariable("id") Long id) {
-		return checkFound(
-			boxRepository.find(id));
+	// we use descriptive names of parameters, not just "id", but "boxId"
+	@RequestMapping(value = "/{boxId}", method = GET)
+	public Box readBox(@PathVariable("boxId") Long boxId) {
+		return RestChecker.checkFound(
+			boxRepository.find(boxId));
 	}
 
-	@RequestMapping(value = "/{id}", method = DELETE)
+	// TODO updateBox PUT
+
+	@RequestMapping(value = "/{boxId}", method = DELETE)
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void deleteBox(@PathVariable("id") Long id) {
-		Box box = checkFound(boxRepository.find(id));
-		checkState(box.items().isEmpty(), "Box MUST be empty but currently is not");
-		boxRepository.delete(id);
+	public void deleteBox(@PathVariable("boxId") Long boxId) {
+		Box box = RestChecker.checkFound(boxRepository.find(boxId));
+		RestChecker.checkState(box.items().isEmpty(), "Box MUST be empty but currently is not");
+		boxRepository.delete(boxId);
+	}
+
+	@RequestMapping(value = "/{boxId}/empty", method = POST)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void emptyBox(@PathVariable("boxId") Long boxId) {
+		Box box = RestChecker.checkFound(boxRepository.find(boxId));
+		// beware of concurrency/transactions in real life systems
+		box.items().forEach(it -> it.box = null);
+		box.items().clear();
 	}
 }
