@@ -40,7 +40,7 @@ public class RestErrorHandler {
 	@ResponseBody
 	@ResponseStatus(HttpStatus.NOT_FOUND)
 	public ErrorResponse handleNotFound() {
-		return createErrorResponse(ErrorCode.MISSING_PARAMETER, "Resource not found");
+		return createErrorResponse(ErrorCode.NOT_FOUND, "Resource not found");
 	}
 
 	private ErrorResponse createErrorResponse(ErrorCode code, String message) {

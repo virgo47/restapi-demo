@@ -27,24 +27,30 @@ public class CommonRepository<T extends Entity> {
 	}
 
 	public synchronized T save(T entity) {
-		assignIdIfMissing(entity);
 		updateTimestamps(entity);
+		assignIdIfMissing(entity);
 
 		data.put(entity.getId(), entity);
 		return entity;
+	}
+
+	private void updateTimestamps(T entity) {
+		if (entity.getId() == null) {
+			entity.setCreated(Instant.now());
+		} else {
+			copyCreatedFromExistingEntity(entity);
+		}
+		entity.setUpdated(Instant.now());
+	}
+
+	private void copyCreatedFromExistingEntity(T entity) {
+		entity.setCreated(find(entity.getId()).getCreated());
 	}
 
 	private void assignIdIfMissing(T entity) {
 		if (entity.getId() == null) {
 			entity.setId(nextId());
 		}
-	}
-
-	private void updateTimestamps(T entity) {
-		if (entity.getCreated() == null) {
-			entity.setCreated(Instant.now());
-		}
-		entity.setUpdated(Instant.now());
 	}
 
 	public synchronized void delete(Long id) {

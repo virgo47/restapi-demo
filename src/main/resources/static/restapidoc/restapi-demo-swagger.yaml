@@ -152,6 +152,12 @@ paths:
         required: true
         type: "integer"
         format: "int64"
+      - name: "successCode"
+        in: "query"
+        description: "Requested success status code (200 OK, 204 No Content or 303 See Other)"
+        required: false
+        type: "integer"
+        format: "int32"
       - in: "body"
         name: "body"
         description: "New box object"
@@ -162,6 +168,14 @@ paths:
         200:
           description: "Box was successfully updated and its current content returned."
           schema: "#/definitions/Box"
+        204:
+          description: "Box was successfully updated, no body is returned."
+        303:
+          description: "Box was successfully updated, Location header to current state returned."
+          headers:
+            Location:
+              description: URI of the updated resource
+              type: string
         400:
           $ref: "#/responses/badRequest"
     delete:
@@ -267,7 +281,7 @@ paths:
       description: |
         Updates the item with specified ID.
         Validations:
-        * For existing ID it updates the item.
+        * Existing ID must be specified in the body and it must match the ID from the path.
       operationId: "updateItem"
       parameters:
       - name: "itemId"
@@ -276,6 +290,12 @@ paths:
         required: true
         type: "integer"
         format: "int64"
+      - name: "successCode"
+        in: "query"
+        description: "Requested success status code (200 OK, 204 No Content or 303 See Other)"
+        required: false
+        type: "integer"
+        format: "int32"
       - in: "body"
         name: "body"
         description: "Updated item object"
@@ -286,6 +306,14 @@ paths:
         200:
           description: "Item was successfully updated and its current content returned."
           schema: "#/definitions/Item"
+        204:
+          description: "Item was successfully updated, no body is returned."
+        303:
+          description: "Item was successfully updated, Location header to current state returned."
+          headers:
+            Location:
+              description: URI of the updated resource
+              type: string
         400:
           $ref: "#/responses/badRequest"
     delete:

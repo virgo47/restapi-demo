@@ -3,6 +3,8 @@ package virgo47.restapidemo.rest;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static virgo47.restapidemo.rest.ControllerUtils.REQUESTED_SUCCESS_CODE;
 
 import virgo47.restapidemo.datalayer.BoxRepository;
 import virgo47.restapidemo.entities.Box;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,7 +53,17 @@ public class BoxRestController {
 			boxRepository.find(boxId));
 	}
 
-	// TODO updateBox PUT
+	@RequestMapping(value = "/{boxId}", method = PUT)
+	public ResponseEntity<?> updateBox(
+		@PathVariable("boxId") Long boxId,
+		@RequestParam(value = REQUESTED_SUCCESS_CODE, required = false) Integer successCode,
+		@RequestBody Box box)
+	{
+		RestChecker.checkUpdatedIdMatch(boxId, box);
+		Box updatedBox = boxRepository.save(box);
+
+		return ControllerUtils.updateResponse(successCode, updatedBox);
+	}
 
 	@RequestMapping(value = "/{boxId}", method = DELETE)
 	@ResponseStatus(HttpStatus.NO_CONTENT)

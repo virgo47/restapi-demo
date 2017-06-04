@@ -3,6 +3,8 @@ package virgo47.restapidemo.rest;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+import static virgo47.restapidemo.rest.ControllerUtils.REQUESTED_SUCCESS_CODE;
 
 import virgo47.restapidemo.datalayer.ItemRepository;
 import virgo47.restapidemo.entities.Item;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,7 +54,17 @@ public class ItemRestController {
 			itemRepository.find(itemId));
 	}
 
-	// TODO updateItem PUT
+	@RequestMapping(value = "/{itemId}", method = PUT)
+	public ResponseEntity<?> updateItem(
+		@PathVariable("itemId") Long itemId,
+		@RequestParam(value = REQUESTED_SUCCESS_CODE, required = false) Integer successCode,
+		@RequestBody Item item)
+	{
+		RestChecker.checkUpdatedIdMatch(itemId, item);
+		Item updatedItem = itemRepository.save(item);
+
+		return ControllerUtils.updateResponse(successCode, updatedItem);
+	}
 
 	@RequestMapping(value = "/{itemId}", method = DELETE)
 	@ResponseStatus(HttpStatus.NO_CONTENT)
