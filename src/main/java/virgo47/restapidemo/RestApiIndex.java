@@ -35,7 +35,7 @@ public class RestApiIndex {
 			.collect(Collectors.toList());
 	}
 
-	@GetMapping
+	@GetMapping("/")
 	public List<OperationJson> index() {
 		return uiRestInfo.stream()
 			.flatMap(OperationInfo::operationJsonStream)
@@ -43,7 +43,7 @@ public class RestApiIndex {
 			.collect(Collectors.toList());
 	}
 
-	@GetMapping(produces = "text/html")
+	@GetMapping(value = "/", produces = "text/html")
 	public String indexHtml() {
 		StringBuilder html = new StringBuilder("<!DOCTYPE html><html><head>"
 			+ "<meta charset='UTF-8'><title>Admin API page</title>"
